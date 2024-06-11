@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upwards Infinite Scroll with Spinner</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .scroll-container {
+            height: 80vh; /* Using viewport height to ensure the container is large enough */
+            width: 100%;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .item {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .spinner {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #000;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="scroll-container" class="scroll-container">
+        <!-- Initial content will be loaded by JavaScript -->
+        <div id="spinner" class="spinner"></div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const container = document.getElementById('scroll-container');
+            const spinner = document.getElementById('spinner');
+            let items = Array.from({ length: 100 }, (_, i) => `Item ${i + 1}`);
+            let loading = false;
+            
+            function prependItems(count) {
+                const fragment = document.createDocumentFragment();
+                for (let i = 0; i < count; i++) {
+                    if (items.length === 0) break; // Avoid trying to prepend more items than available
+                    const item = document.createElement('div');
+                    item.textContent = items.pop();
+                    item.className = 'item';
+                    fragment.prepend(item);
+                }
+                container.prepend(fragment);
+            }
+
+            function loadMore() {
+                if (items.length === 0) {
+                    alert("No more items to load.");
+                    return;
+                }
+                
+                loading = true;
+                spinner.style.display = 'block';
+
+                setTimeout(() => {
+                    const scrollHeightBefore = container.scrollHeight;
+                    prependItems(10);
+                    const scrollHeightAfter = container.scrollHeight;
+                    container.scrollTop += (scrollHeightAfter - scrollHeightBefore);
+
+                    loading = false;
+                    spinner.style.display = 'none';
+                }, 1000); // Simulate a 1-second loading delay
+            }
+
+            container.addEventListener('scroll', function() {
+                if (container.scrollTop === 0 && !loading) {
+                    loadMore();
+                }
+            });
+
+            // Initial load
+            prependItems(20); // Load initial items to ensure there is enough content to scroll
+            container.scrollTop = container.scrollHeight; // Scroll to bottom initially
+        });
+    </script>
+</body>
+</html>
